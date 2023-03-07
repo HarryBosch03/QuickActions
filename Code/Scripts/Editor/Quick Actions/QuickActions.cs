@@ -40,7 +40,7 @@ namespace BoschingMachine.Editor.QuickActions
         [MenuItem("Tools/Quick Actions")]
         public static void Open()
         {
-            var window = CreateWindow<QuickActions>();
+            var window = CreateWindow<QuickActions>("Quick Actions");
             window.QuickFindConfig();
         }
 
