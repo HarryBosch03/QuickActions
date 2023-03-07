@@ -1,0 +1,12 @@
+{
+    "name": "net.boschingmachine.quickactions",
+    "version": "1.0.0",
+    "unity": "2021.3",
+    "displayName": "Boschingmachine's Quick Actions",
+    "author": 
+    {
+        "name": "Bosching Machine",
+        "email": "harrybosch03@gmail.com",
+        "url": "https://github.com/HarryBosch03"
+    }
+}
