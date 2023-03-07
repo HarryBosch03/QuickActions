@@ -33,8 +33,9 @@ namespace BoschingMachine.Editor.QuickActions
 
         static string[] directorySearchPoints => new string[]
         {
-        Environment.GetEnvironmentVariable("USERPROFILE"),
-        Application.dataPath,
+            "",
+            Environment.GetEnvironmentVariable("USERPROFILE") + "\\",
+            Application.dataPath + "\\",
         };
 
         [MenuItem("Tools/Quick Actions")]
@@ -61,7 +62,7 @@ namespace BoschingMachine.Editor.QuickActions
                 {
                     EditorGUI.indentLevel++;
                     config = EditorGUILayout.ObjectField(config, typeof(QuickActionsConfig), false) as QuickActionsConfig;
-                    UnityEditor.Editor.CreateCachedEditor(config, null, ref cachedEditor);
+                    UnityEditor.Editor.CreateCachedEditor(config, typeof(QuickActionsConfigEditor), ref cachedEditor);
 
                     EditorGUI.indentLevel++;
                     cachedEditor.OnInspectorGUI();
@@ -241,19 +242,18 @@ namespace BoschingMachine.Editor.QuickActions
                 return PathTypes.directories;
             }
 
-            if (TryGetAppPath(path, out res))
+            foreach (var root in directorySearchPoints)
             {
-                if (!applicationPaths.ContainsKey(path)) applicationPaths.Add(path, res);
-                return PathTypes.apps;
-            }
+                var subPath = root + path;
+                if (TryGetAppPath(subPath, out res))
+                {
+                    if (!applicationPaths.ContainsKey(path)) applicationPaths.Add(path, res);
+                    return PathTypes.apps;
+                }
 
-            if (File.Exists(path)) return PathTypes.files;
-            if (Directory.Exists(path)) return ParseDir(path);
-
-            foreach (var seachPoint in directorySearchPoints)
-            {
-                res = $"{seachPoint}\\{path}";
-                if (Directory.Exists(res)) return ParseDir(res);
+                res = subPath;
+                if (File.Exists(subPath)) return PathTypes.files;
+                if (Directory.Exists(subPath)) return ParseDir(subPath);
             }
 
             res = path;
@@ -265,7 +265,7 @@ namespace BoschingMachine.Editor.QuickActions
         private static void DrawAsPDirectory(QuickActions quickActions, string path)
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
-            var folderName = path.Split('\\').Last();
+            var folderName = path.Split('\\', '/').Last();
             if (quickActions.Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
@@ -275,7 +275,7 @@ namespace BoschingMachine.Editor.QuickActions
         private static void DrawAsDirectory(QuickActions quickActions, string path)
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
-            var folderName = path.Split('\\').Last();
+            var folderName = path.Split('\\', '/').Last();
             if (quickActions.Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
@@ -294,7 +294,8 @@ namespace BoschingMachine.Editor.QuickActions
             using (new EditorGUILayout.HorizontalScope())
             {
                 var icon = EditorGUIUtility.IconContent("d_Linked").image;
-                if (quickActions.Button($"Open {path}", icon))
+                var name = Path.GetFileName(path);
+                if (quickActions.Button($"Open {name}", icon))
                 {
                     try
                     {
@@ -317,7 +318,6 @@ namespace BoschingMachine.Editor.QuickActions
         private void OpenFileExplorerAt(string path)
         {
             path = Path.GetFullPath(path);
-
             try
             {
                 if (File.Exists(path))

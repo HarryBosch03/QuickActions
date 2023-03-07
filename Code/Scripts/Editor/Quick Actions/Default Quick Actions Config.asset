@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: Default Quick Actions Config
   m_EditorClassIdentifier: 
   quickOpenAssets: []
-  externalLinks: []
+  externalLinks:
+  - Documents/Applications
