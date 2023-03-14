@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     public static class Extensions
     {
@@ -66,7 +66,7 @@ namespace BoschingMachine.Editor.QuickActions
         public static string Replace(this string text, char to, params char[] list)
         {
             var arr = text.ToCharArray();
-            for (int i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Length; i++)
             {
                 arr[i] = to;
             }

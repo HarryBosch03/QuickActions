@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     public class Util
     {
@@ -18,7 +18,7 @@ namespace BoschingMachine.Editor.QuickActions
 
             if (parent.Length > child.Length) return false;
 
-            for (int i = 0; i < parent.Length; i++)
+            for (var i = 0; i < parent.Length; i++)
             {
                 if (child[i] != parent[i]) return false;
             }
