@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     public static class Extensions
     {

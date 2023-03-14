@@ -2,7 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     [CustomEditor(typeof(QuickActionsConfig))]
     public class QuickActionsConfigEditor : UnityEditor.Editor

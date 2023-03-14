@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     [CreateAssetMenu(menuName = "Scriptable Objects/Editor/Quick Actions Config")]
     public class QuickActionsConfig : ScriptableObject

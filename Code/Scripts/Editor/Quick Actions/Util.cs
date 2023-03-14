@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     public class Util
     {

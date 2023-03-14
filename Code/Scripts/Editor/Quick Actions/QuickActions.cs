@@ -6,23 +6,23 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace BoschingMachine.Editor.QuickActions
+namespace Code.Scripts.Editor.Quick_Actions
 {
     public class QuickActions : EditorWindow
     {
-        const int buttonHeight = 40;
+        private const int ButtonHeight = 40;
 
-        QuickActionsConfig config;
-        UnityEditor.Editor cachedEditor;
-        bool configToggle;
-        bool[] externalPathFoldouts = Enumerable.Repeat(true, PathTypes.count).ToArray();
+        private QuickActionsConfig config;
+        private UnityEditor.Editor cachedEditor;
+        private bool configToggle;
+        private readonly bool[] externalPathFoldouts = Enumerable.Repeat(true, PathTypes.Count).ToArray();
 
-        Vector2 scrollPos;
+        private Vector2 scrollPos;
 
-        Dictionary<Type, bool> foldoutState = new();
-        Dictionary<string, string> applicationPaths = new();
+        private readonly Dictionary<Type, bool> foldoutState = new();
+        private readonly Dictionary<string, string> applicationPaths = new();
 
-        static readonly string[] urlTemplates = new string[]
+        private static readonly string[] URLTemplates = new string[]
         {
         "{0}",
         "http://{0}",
@@ -31,7 +31,7 @@ namespace BoschingMachine.Editor.QuickActions
         "https://www.{0}",
         };
 
-        static string[] directorySearchPoints => new string[]
+        private static IEnumerable<string> DirectorySearchPoints => new string[]
         {
             "",
             Environment.GetEnvironmentVariable("USERPROFILE") + "\\",
@@ -56,7 +56,8 @@ namespace BoschingMachine.Editor.QuickActions
                 return;
             }
 
-            if (configToggle = EditorGUILayout.Foldout(configToggle, "Config", true))
+            configToggle = EditorGUILayout.Foldout(configToggle, "Config", true);
+            if (configToggle)
             {
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
@@ -90,7 +91,6 @@ namespace BoschingMachine.Editor.QuickActions
             if (config.quickOpenAssets == null) return;
 
             var assets = config.quickOpenAssets;
-            assets.OrderBy(e => e.GetType().Name + e.name);
 
             Type type = null;
             List<UnityEngine.Object> assetList = new();
@@ -106,6 +106,7 @@ namespace BoschingMachine.Editor.QuickActions
                 if (!assetList.Contains(asset)) assetList.Add(asset);
             }
 
+            assetList.RemoveAll(e => !e);
             assetList = assetList.OrderBy(e => e.GetType().Name + e.name).ToList();
 
             foreach (var asset in assetList)
@@ -115,7 +116,7 @@ namespace BoschingMachine.Editor.QuickActions
                     type = asset.GetType();
                     if (!foldoutState.ContainsKey(type)) foldoutState.Add(type, true);
 
-                    string header = type.Name.Replace((i, s) => s[i].IsCapital(), c => $" {c}");
+                    var header = type.Name.Replace((i, s) => s[i].IsCapital(), c => $" {c}");
                     header = header.Replace("Asset", "").Trim() + "s";
                     foldoutState[type] = EditorGUILayout.Foldout(foldoutState[type], header, true);
                 }
@@ -127,13 +128,13 @@ namespace BoschingMachine.Editor.QuickActions
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    var rect = GUILayoutUtility.GetRect(0, buttonHeight);
+                    var rect = GUILayoutUtility.GetRect(0, ButtonHeight);
 
                     if (Button(new Rect(rect.x, rect.y, rect.width - rect.height * 3.0f, rect.height), $"Open {asset.name}", icon))
                     {
-                        if (asset is SceneAsset)
+                        if (asset is SceneAsset sceneAsset)
                         {
-                            OpenSceneAsset(asset as SceneAsset);
+                            OpenSceneAsset(sceneAsset);
                             continue;
                         }
 
@@ -156,7 +157,7 @@ namespace BoschingMachine.Editor.QuickActions
             }
         }
 
-        private void OpenSceneAsset(SceneAsset sceneAsset)
+        private static void OpenSceneAsset(SceneAsset sceneAsset)
         {
             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
@@ -164,11 +165,11 @@ namespace BoschingMachine.Editor.QuickActions
             }
         }
 
-        static class PathTypes
+        private static class PathTypes
         {
-            public const int url = 0, apps = 1, pDirectories = 2, directories = 3, files = 4, invalid = 5, count = 6;
+            public const int URL = 0, Apps = 1, PDirectories = 2, Directories = 3, Files = 4, Invalid = 5, Count = 6;
 
-            public static readonly string[] names = new string[]
+            public static readonly string[] Names = new string[]
             {
             "Urls", "Applications", "Project Directories", "Directories", "Files", "Invalid"
             };
@@ -187,9 +188,9 @@ namespace BoschingMachine.Editor.QuickActions
         {
             if (config.externalLinks == null) return;
 
-            List<string>[] pathMap = new List<string>[PathTypes.count];
+            var pathMap = new List<string>[PathTypes.Count];
 
-            for (int i = 0; i < pathMap.Length; i++) pathMap[i] = new List<string>();
+            for (var i = 0; i < pathMap.Length; i++) pathMap[i] = new List<string>();
 
             foreach (var link in config.externalLinks)
             {
@@ -197,16 +198,16 @@ namespace BoschingMachine.Editor.QuickActions
                 pathMap[GetPathTypeIndex(link, out var res)].Add(res);
             }
 
-            for (int i = 0; i < PathTypes.count; i++)
+            for (var i = 0; i < PathTypes.Count; i++)
             {
                 if (pathMap[i].Count == 0) continue;
 
-                if (i == PathTypes.invalid)
+                if (i == PathTypes.Invalid)
                 {
                     EditorGUILayout.HelpBox($"Some Links are Invalid", MessageType.Error);
                 }
 
-                if (!(externalPathFoldouts[i] = EditorGUILayout.Foldout(externalPathFoldouts[i], PathTypes.names[i], true))) continue;
+                if (!(externalPathFoldouts[i] = EditorGUILayout.Foldout(externalPathFoldouts[i], PathTypes.Names[i], true))) continue;
 
                 foreach (var path in pathMap[i])
                 {
@@ -215,22 +216,13 @@ namespace BoschingMachine.Editor.QuickActions
             }
         }
 
-        private bool IsUrl(string link)
+        private static bool IsUrl(string link)
         {
-            bool IsUrl(string link)
+            foreach (var template in URLTemplates)
             {
-                if (Uri.TryCreate(link, UriKind.Absolute, out var result))
-                {
-                    return result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps;
-                }
-                return false;
+                if (!Uri.TryCreate(link, UriKind.Absolute, out var result)) continue;
+                if (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps) return true;
             }
-
-            foreach (var template in urlTemplates)
-            {
-                if (IsUrl(string.Format(template, link))) return true;
-            }
-
             return false;
         }
 
@@ -238,35 +230,32 @@ namespace BoschingMachine.Editor.QuickActions
         {
             static int ParseDir(string p)
             {
-                if (Util.IsChildDirectoryOf(p, Application.dataPath)) return PathTypes.pDirectories;
-                return PathTypes.directories;
+                return Util.IsChildDirectoryOf(p, Application.dataPath) ? PathTypes.PDirectories : PathTypes.Directories;
             }
 
-            foreach (var root in directorySearchPoints)
+            foreach (var root in DirectorySearchPoints)
             {
                 var subPath = root + path;
                 if (TryGetAppPath(subPath, out res))
                 {
                     if (!applicationPaths.ContainsKey(path)) applicationPaths.Add(path, res);
-                    return PathTypes.apps;
+                    return PathTypes.Apps;
                 }
 
                 res = subPath;
-                if (File.Exists(subPath)) return PathTypes.files;
+                if (File.Exists(subPath)) return PathTypes.Files;
                 if (Directory.Exists(subPath)) return ParseDir(subPath);
             }
 
             res = path;
-            if (IsUrl(path)) return PathTypes.url;
-
-            return PathTypes.invalid;
+            return IsUrl(path) ? PathTypes.URL : PathTypes.Invalid;
         }
 
         private static void DrawAsPDirectory(QuickActions quickActions, string path)
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
             var folderName = path.Split('\\', '/').Last();
-            if (quickActions.Button($"Open {folderName}", icon))
+            if (Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
             }
@@ -276,7 +265,7 @@ namespace BoschingMachine.Editor.QuickActions
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
             var folderName = path.Split('\\', '/').Last();
-            if (quickActions.Button($"Open {folderName}", icon))
+            if (Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
             }
@@ -295,7 +284,7 @@ namespace BoschingMachine.Editor.QuickActions
             {
                 var icon = EditorGUIUtility.IconContent("d_Linked").image;
                 var name = Path.GetFileName(path);
-                if (quickActions.Button($"Open {name}", icon))
+                if (Button($"Open {name}", icon))
                 {
                     try
                     {
@@ -308,7 +297,7 @@ namespace BoschingMachine.Editor.QuickActions
                 }
 
                 icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
-                if (quickActions.Button($"Goto File Location", icon))
+                if (Button($"Goto File Location", icon))
                 {
                     quickActions.OpenFileExplorerAt(path);
                 }
@@ -322,12 +311,12 @@ namespace BoschingMachine.Editor.QuickActions
             {
                 if (File.Exists(path))
                 {
-                    string augment = $"/select, \"{path}\"";
+                    var augment = $"/select, \"{path}\"";
                     System.Diagnostics.Process.Start("explorer.exe", augment);
                 }
                 else if (Directory.Exists(path))
                 {
-                    string augment = $"\"{path}\"";
+                    var augment = $"\"{path}\"";
                     System.Diagnostics.Process.Start("explorer.exe", augment);
                 }
             }
@@ -337,7 +326,7 @@ namespace BoschingMachine.Editor.QuickActions
             }
         }
 
-        string[] ShortcutPaths => new string[]
+        private static IEnumerable<string> ShortcutPaths => new string[]
         {
         Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs"),
         @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
@@ -362,20 +351,13 @@ namespace BoschingMachine.Editor.QuickActions
                 }
             }
 
-            if (path.Contains('\\'))
-            {
-                res = path;
-                return false;
-            }
-
-            if (TrySearchForShortcuts(path, out res))
-            {
-                return true;
-            }
+            if (!path.Contains('\\')) return TrySearchForShortcuts(path, out res);
+            
+            res = path;
             return false;
         }
 
-        private bool TrySearchForShortcuts(string name, out string res)
+        private static bool TrySearchForShortcuts(string name, out string res)
         {
             var extension = Path.GetExtension(name);
             if (extension == "") name += ".lnk";
@@ -389,7 +371,7 @@ namespace BoschingMachine.Editor.QuickActions
             var paths = ShortcutPaths;
 
             var fileName = Path.GetFileName(name);
-            var append = name.Substring(0, name.Length - fileName.Length);
+            var append = name[..^fileName.Length];
 
             foreach (var path in paths)
             {
@@ -414,16 +396,14 @@ namespace BoschingMachine.Editor.QuickActions
             var icon = EditorGUIUtility.IconContent("d_Linked").image;
 
             var name = Path.GetFileNameWithoutExtension(path);
-            if (quickActions.Button($"Open {name}", icon))
+            if (!Button($"Open {name}", icon)) return;
+            try
             {
-                try
-                {
-                    System.Diagnostics.Process.Start(path);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError(ex, quickActions);
-                }
+                System.Diagnostics.Process.Start(path);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex, quickActions);
             }
         }
 
@@ -431,16 +411,14 @@ namespace BoschingMachine.Editor.QuickActions
         {
             var icon = EditorGUIUtility.IconContent("d_Linked").image;
 
-            if (quickActions.Button($"Goto {link}", icon))
+            if (!Button($"Goto {link}", icon)) return;
+            try
             {
-                try
-                {
-                    System.Diagnostics.Process.Start(link);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError(ex, quickActions);
-                }
+                System.Diagnostics.Process.Start(link);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex, quickActions);
             }
         }
 
@@ -455,15 +433,13 @@ namespace BoschingMachine.Editor.QuickActions
             return;
         }
 
-        private bool Button(string text, Texture icon = null)
+        private static bool Button(string text, Texture icon = null)
         {
-            if (icon) return GUILayout.Button(new GUIContent(text, icon), GUILayout.Height(buttonHeight));
-            else return GUILayout.Button(text, GUILayout.Height(buttonHeight));
+            return icon ? GUILayout.Button(new GUIContent(text, icon), GUILayout.Height(ButtonHeight)) : GUILayout.Button(text, GUILayout.Height(ButtonHeight));
         }
-        private bool Button(Rect rect, string text, Texture icon = null)
+        private static bool Button(Rect rect, string text, Texture icon = null)
         {
-            if (icon) return GUI.Button(rect, new GUIContent(text, icon));
-            else return GUI.Button(rect, text);
+            return icon ? GUI.Button(rect, new GUIContent(text, icon)) : GUI.Button(rect, text);
         }
 
         private void QuickFindConfig()

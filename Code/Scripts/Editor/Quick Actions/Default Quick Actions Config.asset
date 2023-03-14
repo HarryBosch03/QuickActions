@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fae054cd1bed8d4eaf16b5d9e8389fc, type: 3}
   m_Name: Default Quick Actions Config
   m_EditorClassIdentifier: 
-  quickOpenAssets: []
-  externalLinks:
-  - Documents/Applications
+  quickOpenAssets:
+  - {fileID: -944628639613478452, guid: 60c7802c87238334a9bd27c6199065ae, type: 3}
+  externalLinks: []
