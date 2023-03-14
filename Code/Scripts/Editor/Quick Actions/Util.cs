@@ -18,7 +18,7 @@ namespace Code.Scripts.Editor.Quick_Actions
 
             if (parent.Length > child.Length) return false;
 
-            for (int i = 0; i < parent.Length; i++)
+            for (var i = 0; i < parent.Length; i++)
             {
                 if (child[i] != parent[i]) return false;
             }

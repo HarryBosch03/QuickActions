@@ -15,7 +15,7 @@ namespace Code.Scripts.Editor.Quick_Actions
         private QuickActionsConfig config;
         private UnityEditor.Editor cachedEditor;
         private bool configToggle;
-        private readonly bool[] externalPathFoldouts = Enumerable.Repeat(true, PathTypes.Count).ToArray();
+        private readonly bool[] externalPathFoldouts = Enumerable.Repeat(true, PathTypes.count).ToArray();
 
         private Vector2 scrollPos;
 
@@ -90,7 +90,7 @@ namespace Code.Scripts.Editor.Quick_Actions
         {
             if (config.quickOpenAssets == null) return;
 
-            var assets = config.quickOpenAssets;
+            var assets = config.quickOpenAssets.OrderBy(e => e.GetType().Name + e.name);
 
             Type type = null;
             List<UnityEngine.Object> assetList = new();
@@ -106,7 +106,6 @@ namespace Code.Scripts.Editor.Quick_Actions
                 if (!assetList.Contains(asset)) assetList.Add(asset);
             }
 
-            assetList.RemoveAll(e => !e);
             assetList = assetList.OrderBy(e => e.GetType().Name + e.name).ToList();
 
             foreach (var asset in assetList)
@@ -132,9 +131,9 @@ namespace Code.Scripts.Editor.Quick_Actions
 
                     if (Button(new Rect(rect.x, rect.y, rect.width - rect.height * 3.0f, rect.height), $"Open {asset.name}", icon))
                     {
-                        if (asset is SceneAsset sceneAsset)
+                        if (asset is SceneAsset)
                         {
-                            OpenSceneAsset(sceneAsset);
+                            OpenSceneAsset(asset as SceneAsset);
                             continue;
                         }
 
@@ -157,7 +156,7 @@ namespace Code.Scripts.Editor.Quick_Actions
             }
         }
 
-        private static void OpenSceneAsset(SceneAsset sceneAsset)
+        private void OpenSceneAsset(SceneAsset sceneAsset)
         {
             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
@@ -167,9 +166,9 @@ namespace Code.Scripts.Editor.Quick_Actions
 
         private static class PathTypes
         {
-            public const int URL = 0, Apps = 1, PDirectories = 2, Directories = 3, Files = 4, Invalid = 5, Count = 6;
+            public const int url = 0, apps = 1, pDirectories = 2, directories = 3, files = 4, invalid = 5, count = 6;
 
-            public static readonly string[] Names = new string[]
+            public static readonly string[] names = new string[]
             {
             "Urls", "Applications", "Project Directories", "Directories", "Files", "Invalid"
             };
@@ -188,7 +187,7 @@ namespace Code.Scripts.Editor.Quick_Actions
         {
             if (config.externalLinks == null) return;
 
-            var pathMap = new List<string>[PathTypes.Count];
+            var pathMap = new List<string>[PathTypes.count];
 
             for (var i = 0; i < pathMap.Length; i++) pathMap[i] = new List<string>();
 
@@ -198,16 +197,16 @@ namespace Code.Scripts.Editor.Quick_Actions
                 pathMap[GetPathTypeIndex(link, out var res)].Add(res);
             }
 
-            for (var i = 0; i < PathTypes.Count; i++)
+            for (var i = 0; i < PathTypes.count; i++)
             {
                 if (pathMap[i].Count == 0) continue;
 
-                if (i == PathTypes.Invalid)
+                if (i == PathTypes.invalid)
                 {
                     EditorGUILayout.HelpBox($"Some Links are Invalid", MessageType.Error);
                 }
 
-                if (!(externalPathFoldouts[i] = EditorGUILayout.Foldout(externalPathFoldouts[i], PathTypes.Names[i], true))) continue;
+                if (!(externalPathFoldouts[i] = EditorGUILayout.Foldout(externalPathFoldouts[i], PathTypes.names[i], true))) continue;
 
                 foreach (var path in pathMap[i])
                 {
@@ -216,13 +215,22 @@ namespace Code.Scripts.Editor.Quick_Actions
             }
         }
 
-        private static bool IsUrl(string link)
+        private bool IsUrl(string link)
         {
+            bool IsUrl(string link)
+            {
+                if (Uri.TryCreate(link, UriKind.Absolute, out var result))
+                {
+                    return result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps;
+                }
+                return false;
+            }
+
             foreach (var template in URLTemplates)
             {
-                if (!Uri.TryCreate(link, UriKind.Absolute, out var result)) continue;
-                if (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps) return true;
+                if (IsUrl(string.Format(template, link))) return true;
             }
+
             return false;
         }
 
@@ -230,7 +238,8 @@ namespace Code.Scripts.Editor.Quick_Actions
         {
             static int ParseDir(string p)
             {
-                return Util.IsChildDirectoryOf(p, Application.dataPath) ? PathTypes.PDirectories : PathTypes.Directories;
+                if (Util.IsChildDirectoryOf(p, Application.dataPath)) return PathTypes.pDirectories;
+                return PathTypes.directories;
             }
 
             foreach (var root in DirectorySearchPoints)
@@ -239,23 +248,25 @@ namespace Code.Scripts.Editor.Quick_Actions
                 if (TryGetAppPath(subPath, out res))
                 {
                     if (!applicationPaths.ContainsKey(path)) applicationPaths.Add(path, res);
-                    return PathTypes.Apps;
+                    return PathTypes.apps;
                 }
 
                 res = subPath;
-                if (File.Exists(subPath)) return PathTypes.Files;
+                if (File.Exists(subPath)) return PathTypes.files;
                 if (Directory.Exists(subPath)) return ParseDir(subPath);
             }
 
             res = path;
-            return IsUrl(path) ? PathTypes.URL : PathTypes.Invalid;
+            if (IsUrl(path)) return PathTypes.url;
+
+            return PathTypes.invalid;
         }
 
         private static void DrawAsPDirectory(QuickActions quickActions, string path)
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
             var folderName = path.Split('\\', '/').Last();
-            if (Button($"Open {folderName}", icon))
+            if (quickActions.Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
             }
@@ -265,7 +276,7 @@ namespace Code.Scripts.Editor.Quick_Actions
         {
             var icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
             var folderName = path.Split('\\', '/').Last();
-            if (Button($"Open {folderName}", icon))
+            if (quickActions.Button($"Open {folderName}", icon))
             {
                 quickActions.OpenFileExplorerAt(path);
             }
@@ -284,7 +295,7 @@ namespace Code.Scripts.Editor.Quick_Actions
             {
                 var icon = EditorGUIUtility.IconContent("d_Linked").image;
                 var name = Path.GetFileName(path);
-                if (Button($"Open {name}", icon))
+                if (quickActions.Button($"Open {name}", icon))
                 {
                     try
                     {
@@ -297,7 +308,7 @@ namespace Code.Scripts.Editor.Quick_Actions
                 }
 
                 icon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
-                if (Button($"Goto File Location", icon))
+                if (quickActions.Button($"Goto File Location", icon))
                 {
                     quickActions.OpenFileExplorerAt(path);
                 }
@@ -326,7 +337,7 @@ namespace Code.Scripts.Editor.Quick_Actions
             }
         }
 
-        private static IEnumerable<string> ShortcutPaths => new string[]
+        private string[] ShortcutPaths => new string[]
         {
         Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs"),
         @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
@@ -351,13 +362,20 @@ namespace Code.Scripts.Editor.Quick_Actions
                 }
             }
 
-            if (!path.Contains('\\')) return TrySearchForShortcuts(path, out res);
-            
-            res = path;
+            if (path.Contains('\\'))
+            {
+                res = path;
+                return false;
+            }
+
+            if (TrySearchForShortcuts(path, out res))
+            {
+                return true;
+            }
             return false;
         }
 
-        private static bool TrySearchForShortcuts(string name, out string res)
+        private bool TrySearchForShortcuts(string name, out string res)
         {
             var extension = Path.GetExtension(name);
             if (extension == "") name += ".lnk";
@@ -371,7 +389,7 @@ namespace Code.Scripts.Editor.Quick_Actions
             var paths = ShortcutPaths;
 
             var fileName = Path.GetFileName(name);
-            var append = name[..^fileName.Length];
+            var append = name.Substring(0, name.Length - fileName.Length);
 
             foreach (var path in paths)
             {
@@ -396,14 +414,16 @@ namespace Code.Scripts.Editor.Quick_Actions
             var icon = EditorGUIUtility.IconContent("d_Linked").image;
 
             var name = Path.GetFileNameWithoutExtension(path);
-            if (!Button($"Open {name}", icon)) return;
-            try
+            if (quickActions.Button($"Open {name}", icon))
             {
-                System.Diagnostics.Process.Start(path);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(ex, quickActions);
+                try
+                {
+                    System.Diagnostics.Process.Start(path);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError(ex, quickActions);
+                }
             }
         }
 
@@ -411,14 +431,16 @@ namespace Code.Scripts.Editor.Quick_Actions
         {
             var icon = EditorGUIUtility.IconContent("d_Linked").image;
 
-            if (!Button($"Goto {link}", icon)) return;
-            try
+            if (quickActions.Button($"Goto {link}", icon))
             {
-                System.Diagnostics.Process.Start(link);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(ex, quickActions);
+                try
+                {
+                    System.Diagnostics.Process.Start(link);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError(ex, quickActions);
+                }
             }
         }
 
@@ -433,13 +455,15 @@ namespace Code.Scripts.Editor.Quick_Actions
             return;
         }
 
-        private static bool Button(string text, Texture icon = null)
+        private bool Button(string text, Texture icon = null)
         {
-            return icon ? GUILayout.Button(new GUIContent(text, icon), GUILayout.Height(ButtonHeight)) : GUILayout.Button(text, GUILayout.Height(ButtonHeight));
+            if (icon) return GUILayout.Button(new GUIContent(text, icon), GUILayout.Height(ButtonHeight));
+            else return GUILayout.Button(text, GUILayout.Height(ButtonHeight));
         }
-        private static bool Button(Rect rect, string text, Texture icon = null)
+        private bool Button(Rect rect, string text, Texture icon = null)
         {
-            return icon ? GUI.Button(rect, new GUIContent(text, icon)) : GUI.Button(rect, text);
+            if (icon) return GUI.Button(rect, new GUIContent(text, icon));
+            else return GUI.Button(rect, text);
         }
 
         private void QuickFindConfig()

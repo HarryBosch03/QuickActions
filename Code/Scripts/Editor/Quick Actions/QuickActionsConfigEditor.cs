@@ -7,7 +7,7 @@ namespace Code.Scripts.Editor.Quick_Actions
     [CustomEditor(typeof(QuickActionsConfig))]
     public class QuickActionsConfigEditor : UnityEditor.Editor
     {
-        static string lastPath;
+        private static string lastPath;
 
         private void OnEnable()
         {
@@ -36,7 +36,7 @@ namespace Code.Scripts.Editor.Quick_Actions
 
         public static string RemoveFileName (string str)
         {
-            int head = str.Length - 1;
+            var head = str.Length - 1;
             while (head > 0)
             {
                 if (str[head] == '\\' || str[head] == '/') break;
