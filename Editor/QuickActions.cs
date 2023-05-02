@@ -37,6 +37,12 @@ namespace QuickActions
             Environment.GetEnvironmentVariable("USERPROFILE") + "\\",
             Application.dataPath + "\\",
         };
+        
+        private static IEnumerable<string> ShortcutPaths => new string[]
+        {
+            Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs"),
+            @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
+        };
 
         [MenuItem("Tools/Quick Actions")]
         public static void Open()
@@ -343,12 +349,6 @@ namespace QuickActions
                 Debug.LogError(ex, this);
             }
         }
-
-        private string[] ShortcutPaths => new string[]
-        {
-        Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs"),
-        @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
-        };
 
         private bool TryGetAppPath(string path, out string res)
         {
