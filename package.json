@@ -1,12 +1,12 @@
 {
-    "name": "net.boschingmachine.quickactions",
-    "version": "1.0.3",
+    "name": "net.harrybosch.quickactions",
+    "version": "1.0.4",
     "unity": "2021.3",
-    "displayName": "Boschingmachine's Quick Actions",
+    "displayName": "Harry Bosch Presents Quick Actions",
     "author": 
     {
-        "name": "Bosching Machine",
+        "name": "Harry Bosch",
         "email": "harrybosch03@gmail.com",
-        "url": "https://github.com/HarryBosch03"
+        "url": "https://github.com/HarryBosch03/QuickActions"
     }
 }

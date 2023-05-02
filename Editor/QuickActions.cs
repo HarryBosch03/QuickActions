@@ -6,14 +6,14 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Code.Scripts.Editor.Quick_Actions
+namespace QuickActions
 {
     public class QuickActions : EditorWindow
     {
         private const int ButtonHeight = 40;
 
         private QuickActionsConfig config;
-        private UnityEditor.Editor cachedEditor;
+        private Editor cachedEditor;
         private bool configToggle;
         private readonly bool[] externalPathFoldouts = Enumerable.Repeat(true, PathTypes.count).ToArray();
 
@@ -55,6 +55,12 @@ namespace Code.Scripts.Editor.Quick_Actions
                 DrawNoConfig();
                 return;
             }
+            Editor.CreateCachedEditor(config, typeof(QuickActionsConfigEditor), ref cachedEditor);
+            if (!cachedEditor)
+            {
+                DrawNoConfig();
+                return;
+            }
 
             configToggle = EditorGUILayout.Foldout(configToggle, "Config", true);
             if (configToggle)
@@ -63,7 +69,6 @@ namespace Code.Scripts.Editor.Quick_Actions
                 {
                     EditorGUI.indentLevel++;
                     config = EditorGUILayout.ObjectField(config, typeof(QuickActionsConfig), false) as QuickActionsConfig;
-                    UnityEditor.Editor.CreateCachedEditor(config, typeof(QuickActionsConfigEditor), ref cachedEditor);
 
                     EditorGUI.indentLevel++;
                     cachedEditor.OnInspectorGUI();
@@ -88,6 +93,7 @@ namespace Code.Scripts.Editor.Quick_Actions
 
         private void QuickOpenAssets()
         {
+            if (!config) return;
             if (config.quickOpenAssets == null) return;
 
             var assets = config.quickOpenAssets.OrderBy(e => e.GetType().Name + e.name);
@@ -106,10 +112,12 @@ namespace Code.Scripts.Editor.Quick_Actions
                 if (!assetList.Contains(asset)) assetList.Add(asset);
             }
 
-            assetList = assetList.OrderBy(e => e.GetType().Name + e.name).ToList();
+            assetList = assetList.OrderBy(e => e ? e.GetType().Name + e.name : "").ToList();
 
             foreach (var asset in assetList)
             {
+                if (!asset) continue;
+                
                 if (type != asset.GetType())
                 {
                     type = asset.GetType();
@@ -172,7 +180,7 @@ namespace Code.Scripts.Editor.Quick_Actions
             {
             "Urls", "Applications", "Project Directories", "Directories", "Files", "Invalid"
             };
-            public static readonly System.Action<QuickActions, string>[] DrawCalls = new Action<QuickActions, string>[]
+            public static readonly Action<QuickActions, string>[] DrawCalls = new Action<QuickActions, string>[]
             {
             DrawAsLink,
             DrawAsApp,
@@ -185,6 +193,7 @@ namespace Code.Scripts.Editor.Quick_Actions
 
         private void ExternalLinks()
         {
+            if (!config) return;
             if (config.externalLinks == null) return;
 
             var pathMap = new List<string>[PathTypes.count];

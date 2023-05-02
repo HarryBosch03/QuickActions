@@ -1,6 +1,6 @@
 {
     "name": "QuickActions",
-    "rootNamespace": "",
+    "rootNamespace": "QuickActions",
     "references": [],
     "includePlatforms": [
         "Editor"

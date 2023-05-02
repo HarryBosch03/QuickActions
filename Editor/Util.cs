@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Code.Scripts.Editor.Quick_Actions
+namespace QuickActions
 {
     public class Util
     {

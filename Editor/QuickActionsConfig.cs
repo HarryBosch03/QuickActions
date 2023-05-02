@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Code.Scripts.Editor.Quick_Actions
+namespace QuickActions
 {
     [CreateAssetMenu(menuName = "Scriptable Objects/Editor/Quick Actions Config")]
     public class QuickActionsConfig : ScriptableObject

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Code.Scripts.Editor.Quick_Actions
+namespace QuickActions
 {
     public static class Extensions
     {
