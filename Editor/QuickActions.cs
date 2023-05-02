@@ -42,7 +42,7 @@ namespace QuickActions
         public static void Open()
         {
             var window = CreateWindow<QuickActions>("Quick Actions");
-            window.QuickFindConfig();
+            window.config = QuickActionsConfig.GetOrCreateDefault();
         }
 
         private void OnGUI()
@@ -96,8 +96,6 @@ namespace QuickActions
             if (!config) return;
             if (config.quickOpenAssets == null) return;
 
-            var assets = config.quickOpenAssets.OrderBy(e => e.GetType().Name + e.name);
-
             Type type = null;
             List<UnityEngine.Object> assetList = new();
 
@@ -112,7 +110,7 @@ namespace QuickActions
                 if (!assetList.Contains(asset)) assetList.Add(asset);
             }
 
-            assetList = assetList.OrderBy(e => e ? e.GetType().Name + e.name : "").ToList();
+            assetList = assetList.OrderBy(e => e ? e.GetType().Name : "").ToList();
 
             foreach (var asset in assetList)
             {
@@ -457,9 +455,9 @@ namespace QuickActions
         {
             config = EditorGUILayout.ObjectField(config, typeof(QuickActionsConfig), false) as QuickActionsConfig;
             EditorGUILayout.HelpBox("Missing Config", MessageType.Warning);
-            if (Button("Quick Find"))
+            if (Button("Load Default"))
             {
-                QuickFindConfig();
+                config = QuickActionsConfig.GetOrCreateDefault();
             }
             return;
         }
@@ -473,16 +471,6 @@ namespace QuickActions
         {
             if (icon) return GUI.Button(rect, new GUIContent(text, icon));
             else return GUI.Button(rect, text);
-        }
-
-        private void QuickFindConfig()
-        {
-            var guids = AssetDatabase.FindAssets($"t:{nameof(QuickActionsConfig)}");
-            if (guids.Length == 0) return;
-            var guid = guids[0];
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            config = AssetDatabase.LoadAssetAtPath<QuickActionsConfig>(path);
         }
 
         private void PurgeCaches()
