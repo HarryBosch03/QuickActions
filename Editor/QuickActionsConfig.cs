@@ -11,6 +11,7 @@ namespace QuickActions
         public List<string> externalLinks = new();
 
         private const string DefaultPath = "Packages/net.harrybosch.quickactions/Editor/Default Quick Actions Config.asset";
+        private const string FallbackPath = "Assets/Default Quick Actions Config.asset";
         private static QuickActionsConfig defaultAsset = null;
         
         internal static QuickActionsConfig GetOrCreateDefault()
@@ -21,7 +22,7 @@ namespace QuickActions
             if (defaultAsset) return defaultAsset;
 
             defaultAsset = CreateInstance<QuickActionsConfig>();
-            AssetDatabase.CreateAsset(defaultAsset, DefaultPath);
+            AssetDatabase.CreateAsset(defaultAsset, FallbackPath);
             AssetDatabase.SaveAssets();
             return defaultAsset;
         }
