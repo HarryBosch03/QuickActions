@@ -1,16 +1,9 @@
 using System.IO;
 
-namespace QuickActions
+namespace QuickActions.Editor.Utility
 {
-    public class Util
+    public class Utility
     {
-        public static string PrettifyName(string text)
-        {
-            text = text.Replace(c => c.IsCapital(), c => $" {c}").Replace(' ', '_', '.', '-').Trim();
-            text = text[0].ToString().ToUpper() + text.Substring(1, text.Length - 1);
-            return text;
-        }
-
         public static bool IsChildDirectoryOf(string child, string parent)
         {
             child = Path.GetFullPath(child);

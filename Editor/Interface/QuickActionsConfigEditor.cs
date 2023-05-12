@@ -1,14 +1,15 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using QuickActions.Editor.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace QuickActions
+namespace QuickActions.Editor.Interface
 {
     [CustomEditor(typeof(QuickActionsConfig))]
-    public class QuickActionsConfigEditor : Editor
+    public class QuickActionsConfigEditor : UnityEditor.Editor
     {
         private static string lastPath;
 
@@ -17,7 +18,7 @@ namespace QuickActions
             lastPath = Application.dataPath;
         }
 
-        static void Divider()
+        private static void Div()
         {
             var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
             rect.y += rect.height * 0.5f;
@@ -34,7 +35,7 @@ namespace QuickActions
             EditorGUILayout.PropertyField(assetList);
             SortListIfUserWantsTo("Sort Asset List", config, c => c.quickOpenAssets, e => e.GetType().Name);
 
-            Divider();
+            Div();
             
             var externalLinks = serializedObject.FindProperty("externalLinks");
             EditorGUILayout.PropertyField(externalLinks);
@@ -45,7 +46,11 @@ namespace QuickActions
 
             EditorGUI.EndChangeCheck();
 
-            Divider();
+            Div();
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("sceneListMode"));
+            
+            Div();
             
             AddFile(config);
             AddDirectory(config);
@@ -95,7 +100,7 @@ namespace QuickActions
                 head--;
             }
 
-            return str.Substring(0, head);
+            return str[..head];
         }
     }
 }
